@@ -2,17 +2,18 @@ import { Link } from "@reach/router";
 import { loadPosts, updatePost } from "../api";
 import { useState } from "react";
 import { useToggle } from "../hooks/useToggle";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "react-query";
 
 export function Posts() {
-  const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
   const queryKey = ["posts"];
 
-  const { isLoading, data, isFetching } = useQuery(
+  const { isLoading, data, isFetching, fetchNextPage } = useInfiniteQuery(
     queryKey,
-    () => loadPosts(1),
-    { staleTime: 60000 }
+    {
+      queryFn: ({ pageParam }) => loadPosts(pageParam),
+      getNextPageParam: (lastPage, allPages) => allPages.length + 1,
+    }
   );
 
   const { mutate: updatePostTitle } = useMutation({
@@ -20,10 +21,15 @@ export function Posts() {
     onMutate: async ({ id, title }) => {
       await queryClient.cancelQueries(queryKey);
       const previousPosts = queryClient.getQueryData(queryKey);
-      queryClient.setQueryData(queryKey, () => {
-        return data.map((post) =>
-          post.id === id ? { ...post, title: title } : post
-        );
+      queryClient.setQueryData(queryKey, (data) => {
+        return {
+          ...data,
+          pages: data.pages.map((page) =>
+            page.map((post) =>
+              post.id === id ? { ...post, title: title } : post
+            )
+          ),
+        };
       });
       return { previousPosts };
     },
@@ -32,7 +38,7 @@ export function Posts() {
     },
   });
 
-  const posts = data || [];
+  const posts = data?.pages?.flat() || [];
 
   return (
     <div>
@@ -77,8 +83,8 @@ export function Posts() {
       <div className="flex" style={{ paddingBottom: "3rem" }}>
         <button
           className="ui button"
-          onClick={() => setPage((v) => v + 1)}
-          disabled={isLoading}
+          onClick={fetchNextPage}
+          disabled={isLoading || isFetching}
         >
           Page suivante
         </button>

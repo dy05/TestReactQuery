@@ -18,7 +18,13 @@ for (let i = 1; i < 100; i++) {
 }
  **/
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 ReactDOM.hydrate(
   <React.StrictMode>
