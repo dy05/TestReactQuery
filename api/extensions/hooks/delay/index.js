@@ -7,4 +7,11 @@ module.exports = ({ filter }) => {
     await wait(2000)
     return input;
   });
+  filter('items.update', async (input) => {
+    if (input.title === 'err') {
+      await wait(2000)
+      throw new Error('wtf happened')
+    }
+    return input;
+  });
 };

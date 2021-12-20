@@ -1,23 +1,46 @@
 import { Link } from "@reach/router";
-import { usePosts } from "../hooks/usePosts";
-import { updatePost } from "../api";
+import { loadPosts, updatePost } from "../api";
 import { useState } from "react";
 import { useToggle } from "../hooks/useToggle";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 
 export function Posts() {
   const [page, setPage] = useState(1);
-  const { posts, loading, setPosts } = usePosts(page);
+  const queryClient = useQueryClient();
+  const queryKey = ["posts"];
 
-  const handleTitleUpdate = async (post, value) => {
-    const editedPost = await updatePost(post.id, { title: value });
-    setPosts((posts) =>
-      posts.map((p) => (p.id === editedPost.id ? editedPost : p))
-    );
-  };
+  const { isLoading, data, isFetching } = useQuery(
+    queryKey,
+    () => loadPosts(1),
+    { staleTime: 60000 }
+  );
+
+  const { mutate: updatePostTitle } = useMutation({
+    mutationFn: ({ id, title }) => updatePost(id, { title }),
+    onMutate: async ({ id, title }) => {
+      await queryClient.cancelQueries(queryKey);
+      const previousPosts = queryClient.getQueryData(queryKey);
+      queryClient.setQueryData(queryKey, () => {
+        return data.map((post) =>
+          post.id === id ? { ...post, title: title } : post
+        );
+      });
+      return { previousPosts };
+    },
+    onError: (err, newTodo, context) => {
+      queryClient.setQueryData(queryKey, context.previousPosts);
+    },
+  });
+
+  const posts = data || [];
 
   return (
     <div>
       <h2 style={{ marginBottom: 20 }}>Les articles</h2>
+
+      {isFetching && (
+        <div className="ui active centered mini inverted inline loader fixed" />
+      )}
 
       <table
         className="ui very basic collapsing celled table"
@@ -35,12 +58,12 @@ export function Posts() {
         <tbody>
           {posts.map((post) => (
             <PostRow
-              onTitleUpdate={handleTitleUpdate}
+              onTitleUpdate={updatePostTitle}
               post={post}
               key={post.id}
             />
           ))}
-          {loading && (
+          {isLoading && (
             <tr>
               <td colSpan={5}>
                 <div className="spinner-border text-primary" role="status">
@@ -55,7 +78,7 @@ export function Posts() {
         <button
           className="ui button"
           onClick={() => setPage((v) => v + 1)}
-          disabled={loading}
+          disabled={isLoading}
         >
           Page suivante
         </button>
@@ -70,7 +93,7 @@ function PostRow({ post, onTitleUpdate }) {
   const handleBlur = async (e) => {
     toggleLoading();
     const value = e.target.value;
-    await onTitleUpdate(post, value);
+    await onTitleUpdate({ id: post.id, title: value });
     toggleLoading();
     setState("view");
   };

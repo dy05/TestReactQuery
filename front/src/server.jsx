@@ -2,11 +2,17 @@ import ReactDOMServer from "react-dom/server.node.js";
 import App from "./App.jsx";
 import React from "react";
 import Koa from "koa";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 const app = new Koa();
 
 app.use((ctx) => {
-  const html = ReactDOMServer.renderToString(<App />);
+  const queryClient = new QueryClient();
+  const html = ReactDOMServer.renderToString(
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
+  );
   ctx.body = `<!DOCTYPE html>
 <html lang="fr">
 <head>

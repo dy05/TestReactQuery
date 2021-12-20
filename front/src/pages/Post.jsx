@@ -1,37 +1,46 @@
 import { Link } from "@reach/router";
 import { usePost } from "../hooks/usePost";
-import { updatePost } from "../api";
+import { loadPost, updatePost } from "../api";
 import { useState } from "react";
 import clsx from "clsx";
 import { Message } from "../ui/Flash";
 import { useToggle } from "../hooks/useToggle";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 
 export function Post({ post: postId }) {
-  const { loading, post } = usePost(postId);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [saved, toggleSaved] = useToggle();
+  const queryKey = [`posts`, postId];
+  const { isLoading, data: post } = useQuery(queryKey, () => loadPost(postId));
 
-  if (loading) {
+  const queryClient = useQueryClient();
+
+  const {
+    isLoading: isUpdating,
+    mutate,
+    isSuccess: isUpdated,
+    reset: resetUpdate,
+  } = useMutation({
+    mutationFn: (data) => updatePost(postId, data),
+    onSuccess: () => queryClient.invalidateQueries(["posts"]),
+  });
+
+  if (isLoading) {
     return <div className="ui active centered inline loader" />;
   }
 
   const handleSubmit = async (e) => {
-    setIsSubmitting(true);
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = {
       ...Object.fromEntries(formData),
       status: formData.get("published") ? "published" : "draft",
     };
-    await updatePost(postId, data);
-    setIsSubmitting(false);
-    toggleSaved();
+    mutate(data);
   };
 
   return (
     <div>
-      {saved && (
-        <Message onClose={toggleSaved}>L'article a bien été sauvegardé</Message>
+      {isUpdated && (
+        <Message onClose={resetUpdate}>L'article a bien été sauvegardé</Message>
       )}
 
       <h1>Editer "{post.title}"</h1>
@@ -50,7 +59,7 @@ export function Post({ post: postId }) {
               <input
                 type="checkbox"
                 name="published"
-                checked={post.status === "published"}
+                defaultChecked={post.status === "published"}
               />
               <label />
             </div>
@@ -61,8 +70,8 @@ export function Post({ post: postId }) {
           <textarea name="content" defaultValue={post.content} />
         </div>
         <button
-          className={clsx("ui button primary", isSubmitting && "loading")}
-          disabled={isSubmitting}
+          className={clsx("ui button primary", isUpdating && "loading")}
+          disabled={isUpdating}
           type="submit"
         >
           Submit
