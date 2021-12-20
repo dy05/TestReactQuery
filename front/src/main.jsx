@@ -1,8 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import { BrowserRouter } from "react-router-dom";
-import { createPost } from "./api";
 import "./App.css";
 
 /**
@@ -18,11 +16,9 @@ for (let i = 1; i < 100; i++) {
 }
  **/
 
-ReactDOM.render(
+ReactDOM.hydrate(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <App />
   </React.StrictMode>,
   document.getElementById("root")
 );

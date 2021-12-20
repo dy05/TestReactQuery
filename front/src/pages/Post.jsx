@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link } from "@reach/router";
 import { usePost } from "../hooks/usePost";
 import { updatePost } from "../api";
 import { useState } from "react";
@@ -6,9 +6,8 @@ import clsx from "clsx";
 import { Message } from "../ui/Flash";
 import { useToggle } from "../hooks/useToggle";
 
-export function Post() {
-  const params = useParams();
-  const { loading, post } = usePost(params.post);
+export function Post({ post: postId }) {
+  const { loading, post } = usePost(postId);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saved, toggleSaved] = useToggle();
 
@@ -24,7 +23,7 @@ export function Post() {
       ...Object.fromEntries(formData),
       status: formData.get("published") ? "published" : "draft",
     };
-    await updatePost(params.post, data);
+    await updatePost(postId, data);
     setIsSubmitting(false);
     toggleSaved();
   };

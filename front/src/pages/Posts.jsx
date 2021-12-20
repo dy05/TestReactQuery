@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@reach/router";
 import { usePosts } from "../hooks/usePosts";
 import { updatePost } from "../api";
 import { useState } from "react";
