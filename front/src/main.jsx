@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import "./App.css";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
 /**
@@ -18,6 +18,8 @@ for (let i = 1; i < 100; i++) {
 }
  **/
 
+const dehydratedState = window.__REACT_QUERY_STATE__;
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -29,7 +31,9 @@ const queryClient = new QueryClient({
 ReactDOM.hydrate(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <Hydrate state={dehydratedState}>
+        <App />
+      </Hydrate>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </React.StrictMode>,

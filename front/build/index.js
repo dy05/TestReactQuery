@@ -11,5 +11,6 @@ build({
   logLevel: "debug",
   bundle: true,
   inject: ["./build/react-shim.js"],
+  external: ["events", "react-dom", "react"],
   plugins: [nodeExternalsPlugin()],
 });

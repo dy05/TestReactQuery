@@ -11,7 +11,7 @@ export function Posts() {
   const { isLoading, data, isFetching, fetchNextPage } = useInfiniteQuery(
     queryKey,
     {
-      queryFn: ({ pageParam }) => loadPosts(pageParam),
+      queryFn: ({ pageParam }) => loadPosts(pageParam || 1),
       getNextPageParam: (lastPage, allPages) => allPages.length + 1,
     }
   );
