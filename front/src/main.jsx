@@ -6,7 +6,7 @@ import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
 /**
- * SEEEDER
+ * SEEDER
  *
 for (let i = 1; i < 100; i++) {
   createPost({
@@ -20,22 +20,22 @@ for (let i = 1; i < 100; i++) {
 
 const dehydratedState = window.__REACT_QUERY_STATE__;
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+// const queryClient = new QueryClient({
+//   defaultOptions: {
+//     queries: {
+//       refetchOnWindowFocus: false,
+//     },
+//   },
+// });
 
 ReactDOM.hydrate(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <Hydrate state={dehydratedState}>
-        <App />
-      </Hydrate>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    {/*<QueryClientProvider client={queryClient}>*/}
+    {/*  <Hydrate state={dehydratedState}>*/}
+      <App />
+    {/*  </Hydrate>*/}
+    {/*  <ReactQueryDevtools initialIsOpen={false} />*/}
+    {/*</QueryClientProvider>*/}
   </React.StrictMode>,
   document.getElementById("root")
 );
